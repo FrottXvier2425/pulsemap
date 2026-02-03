@@ -1,65 +1,131 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useCallback, useEffect } from "react";
+import Navbar from "@/components/Navbar";
+import PulseMap from "@/components/PulseMap";
+import LayerControls from "@/components/LayerControls";
+import Legend from "@/components/Legend";
+import OutbreakDetail from "@/components/OutbreakDetail";
+import Feed from "@/components/Feed";
+import { seedOutbreaks, seedFeedItems, FeedItem } from "@/lib/seed-data";
+import { fetchOutbreakGeoJSON, fetchFeedItems } from "@/lib/fetch-outbreaks";
+import { OutbreakGeoJSON, OutbreakGeoFeature, LayerVisibility } from "@/types";
 
 export default function Home() {
+  const [layers, setLayers] = useState<LayerVisibility>({
+    heatmap: true,
+    hotspots: true,
+    spread: false,
+    newsPins: false,
+  });
+  const [outbreakData, setOutbreakData] = useState<OutbreakGeoJSON>(seedOutbreaks);
+  const [feedItems, setFeedItems] = useState<FeedItem[]>(seedFeedItems);
+  const [selectedFeature, setSelectedFeature] =
+    useState<OutbreakGeoFeature | null>(null);
+  const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dataSource, setDataSource] = useState<"loading" | "supabase" | "static">("loading");
+
+  // Fetch live data from Supabase on mount
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [geoData, feed] = await Promise.all([
+          fetchOutbreakGeoJSON(),
+          fetchFeedItems(),
+        ]);
+
+        if (geoData.features.length > 0) {
+          setOutbreakData(geoData);
+          setDataSource("supabase");
+        } else {
+          setDataSource("static");
+        }
+
+        if (feed.length > 0) {
+          setFeedItems(feed);
+        }
+      } catch {
+        console.warn("Failed to fetch from Supabase, using static data");
+        setDataSource("static");
+      }
+    }
+
+    loadData();
+  }, []);
+
+  const handleLayerToggle = useCallback((layer: keyof LayerVisibility) => {
+    setLayers((prev) => ({ ...prev, [layer]: !prev[layer] }));
+  }, []);
+
+  const handleFeatureClick = useCallback((feature: OutbreakGeoFeature) => {
+    setSelectedFeature(feature);
+    setFlyTo(feature.geometry.coordinates);
+  }, []);
+
+  const handleFeedItemClick = useCallback(
+    (outbreakId: string) => {
+      const feature = outbreakData.features.find(
+        (f) => f.properties.outbreak_id === outbreakId
+      );
+      if (feature) {
+        handleFeatureClick(feature);
+      }
+    },
+    [handleFeatureClick, outbreakData]
+  );
+
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex flex-col h-screen">
+      <Navbar onSearch={handleSearch} />
+
+      {/* Map Section */}
+      <div className="relative flex-1" style={{ minHeight: "55vh" }}>
+        <PulseMap
+          data={outbreakData}
+          layers={layers}
+          onFeatureClick={handleFeatureClick}
+          flyTo={flyTo}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        <LayerControls layers={layers} onToggle={handleLayerToggle} />
+        <Legend />
+
+        {/* Data source indicator */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-md border ${
+            dataSource === "supabase"
+              ? "bg-heat-low/10 border-heat-low/30 text-heat-low"
+              : dataSource === "static"
+              ? "bg-heat-moderate/10 border-heat-moderate/30 text-heat-moderate"
+              : "bg-accent/10 border-accent/30 text-accent"
+          }`}>
+            <div className={`w-1.5 h-1.5 rounded-full ${
+              dataSource === "supabase" ? "bg-heat-low" :
+              dataSource === "static" ? "bg-heat-moderate" : "bg-accent animate-pulse"
+            }`} />
+            {dataSource === "supabase" ? "Live Data" :
+             dataSource === "static" ? "Static Data" : "Loading..."}
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+        <OutbreakDetail
+          feature={selectedFeature}
+          onClose={() => setSelectedFeature(null)}
+        />
+      </div>
+
+      {/* Feed Section */}
+      <div className="h-[35vh] border-t border-border">
+        <Feed
+          items={feedItems}
+          searchQuery={searchQuery}
+          onItemClick={handleFeedItemClick}
+        />
+      </div>
     </div>
   );
 }
